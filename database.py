@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
@@ -49,6 +50,11 @@ else:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+def has_required_tables(required_tables=("listings",)):
+    table_names = set(inspect(engine).get_table_names())
+    return set(required_tables).issubset(table_names)
 
 
 PROPERTY_COLUMNS = {

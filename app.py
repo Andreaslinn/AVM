@@ -25,13 +25,18 @@ def env_flag(name, default=False):
 DEMO_MODE = env_flag("DEMO_MODE", True)
 os.environ["DEMO_MODE"] = "1" if DEMO_MODE else "0"
 
-from database import DB_PATH, SessionLocal, engine
+from database import DB_PATH, SessionLocal, engine, has_required_tables
 from data_sufficiency import LOW_DATA_WARNING, MIN_ACTIVE_LISTINGS
 from services.listing_service import initialize_app_data, save_listing as save_property_listing
 from services import radar_service, risk_analysis_service, valuation_service
 from tracking import log_event
 
 st.set_page_config(page_title="Tasador Inmobiliario", layout="wide")
+
+if DEMO_MODE and not has_required_tables():
+    st.error("Demo DB no cargada correctamente")
+    st.caption(f"No se encontró la tabla `listings` en `{DB_PATH}`.")
+    st.stop()
 
 if "page" not in st.session_state:
     st.session_state.page = "tracking"
