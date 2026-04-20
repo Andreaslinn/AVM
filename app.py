@@ -11,13 +11,25 @@ import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
-from database import SessionLocal, engine
+load_dotenv()
+
+
+def env_flag(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+DEMO_MODE = env_flag("DEMO_MODE", True)
+os.environ["DEMO_MODE"] = "1" if DEMO_MODE else "0"
+
+from database import DB_PATH, SessionLocal, engine
 from data_sufficiency import LOW_DATA_WARNING, MIN_ACTIVE_LISTINGS
 from services.listing_service import initialize_app_data, save_listing as save_property_listing
 from services import radar_service, risk_analysis_service, valuation_service
 from tracking import log_event
-
-DEMO_MODE = True
 
 st.set_page_config(page_title="Tasador Inmobiliario", layout="wide")
 
@@ -46,8 +58,6 @@ def render_nav():
         nav_button("Tracking", "nav_tracking", "tracking")
 
     st.markdown("---")
-
-load_dotenv()
 
 def check_login():
     USERS_FILE = Path("users.json")
@@ -105,6 +115,9 @@ if "usage_logged" not in st.session_state:
 
 
 st.info("Beta privada — análisis automatizado con fines informativos. No reemplaza asesoría profesional.")
+
+if DEMO_MODE:
+    st.caption(f"Modo demo: usando snapshot `{DB_PATH}`. Scraping y escrituras desactivadas.")
 
 
 if st.session_state.get("is_admin"):
@@ -6147,9 +6160,10 @@ def render_radar():
         if st.button("Ejecutar radar", use_container_width=True):
             track("click_run_radar", {"limit": int(radar_limit)})
             if DEMO_MODE:
-                st.info("Demo mode: radar desactivado para evitar escrituras en DB.")
-            else:
-                st.session_state["radar_result"] = radar_service.get_investment_opportunities(limit=int(radar_limit))
+                st.info(
+                    "Modo demo: radar activo sobre la DB snapshot, sin scraping ni escrituras."
+                )
+            st.session_state["radar_result"] = radar_service.get_investment_opportunities(limit=int(radar_limit))
     
         radar_result = st.session_state.get("radar_result")
     
@@ -6290,15 +6304,17 @@ def render_radar():
             track("click_budget_search", {"presupuesto": float(presupuesto)})
             if presupuesto <= 0:
                 st.warning("Ingresa un presupuesto mayor a cero.")
-            elif DEMO_MODE:
-                st.info("Demo mode: búsqueda desactivada para evitar escrituras en DB.")
             else:
+                if DEMO_MODE:
+                    st.info(
+                        "Modo demo: búsqueda activa sobre la DB snapshot, sin scraping ni escrituras."
+                    )
                 opportunities = radar_service.get_best_opportunity(float(presupuesto))
     
                 if not opportunities:
                     st.info(
                         "No encontramos oportunidades activas bajo ese presupuesto. "
-                        "Prueba con un monto mayor o vuelve a correr el scraper."
+                        "Prueba con un monto mayor o actualiza la snapshot demo antes del deploy."
                     )
                 else:
                     for opportunity in opportunities:
@@ -6554,7 +6570,7 @@ def render_tracking():
             normalized_name = name_input.strip() or None
             if normalized_name != custom_name:
                 if DEMO_MODE:
-                    st.caption("Demo mode: nombre no guardado")
+                    st.caption("Modo demo: nombre no guardado en la snapshot")
                 else:
                     with engine.begin() as connection:
                         connection.exec_driver_sql(

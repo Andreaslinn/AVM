@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import date
+import time
 from typing import Optional
 
 from sqlalchemy import select
 
 from comparables import (
+    MAX_CANDIDATES,
     MIN_SCORE,
     RELAXED_MIN_SCORE,
     aplicar_pesos_comparables,
@@ -22,7 +24,7 @@ from comparables import (
     preparar_comparables_validos,
     seleccionar_top_comparables,
 )
-from database import SessionLocal, init_db
+from database import DEMO_MODE, SessionLocal, init_db
 from data_sufficiency import (
     MIN_ACTIVE_LISTINGS,
     get_data_sufficiency,
@@ -33,6 +35,9 @@ from models import Listing, PriceHistory
 
 
 DEFAULT_TOP_LIMIT = 20
+DEMO_RADAR_MAX_LISTINGS = 40
+DEMO_RADAR_MAX_COMPARABLES = 30
+DEMO_RADAR_TIME_BUDGET_SECONDS = 6.0
 MIN_RADAR_DATASET_SIZE = 10
 MIN_UNDERVALUATION = 0.05
 LOW_DATA_MIN_UNDERVALUATION = 0.10
@@ -115,6 +120,8 @@ def detectar_oportunidades(db, limit: int = DEFAULT_TOP_LIMIT) -> list[dict]:
     """Analyze active listings and return the strongest undervaluation signals."""
     oportunidades = []
     candidatos = obtener_listings_candidatos(db)
+    if DEMO_MODE:
+        candidatos = candidatos[:DEMO_RADAR_MAX_LISTINGS]
     data_sufficiency = get_data_sufficiency(db)
     low_data = data_sufficiency["low_data_mode"]
 
@@ -130,7 +137,15 @@ def detectar_oportunidades(db, limit: int = DEFAULT_TOP_LIMIT) -> list[dict]:
 
     _ = get_uf_actual()
 
+    started_at = time.monotonic()
     for listing in candidatos:
+        if (
+            DEMO_MODE
+            and time.monotonic() - started_at > DEMO_RADAR_TIME_BUDGET_SECONDS
+        ):
+            print("[RADAR][DEMO] Time budget reached; returning partial result")
+            break
+
         oportunidad = analizar_listing(db, listing, low_data_mode=low_data)
 
         if oportunidad is None:
@@ -185,6 +200,7 @@ def obtener_listings_candidatos(db) -> list[Listing]:
         .where(
             (Listing.precio_clp.is_not(None)) | (Listing.precio_uf.is_not(None))
         )
+        .order_by(Listing.last_seen.desc(), Listing.id.desc())
     )
     return list(db.execute(statement).scalars().all())
 
@@ -339,6 +355,7 @@ def estimar_valor_mercado(
         property_data.get("dormitorios"),
         property_data.get("banos"),
         property_data.get("estacionamientos"),
+        max_candidates=DEMO_RADAR_MAX_COMPARABLES if DEMO_MODE else MAX_CANDIDATES,
         exclude_listing_id=listing.id,
     )
 
@@ -354,6 +371,7 @@ def estimar_valor_mercado(
             property_data.get("dormitorios"),
             property_data.get("banos"),
             property_data.get("estacionamientos"),
+            max_candidates=DEMO_RADAR_MAX_COMPARABLES if DEMO_MODE else MAX_CANDIDATES,
             exclude_listing_id=listing.id,
             allow_adjacent_segments=True,
         )

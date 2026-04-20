@@ -9,6 +9,7 @@ except Exception:
 
 from sqlalchemy import or_, select
 
+from database import DEMO_MODE
 from data_quality import is_listing_usable
 from data_sufficiency import get_data_sufficiency, print_low_data_warning
 from deduplication import is_representative_filter
@@ -70,6 +71,9 @@ WEIGHTS = {
 
 
 def get_uf_actual():
+    if DEMO_MODE:
+        return _uf_cache["valor"] or UF_TO_CLP
+
     try:
         if requests is None:
             if _uf_cache["valor"] is not None:

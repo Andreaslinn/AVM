@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -8,7 +9,31 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///tasador.db")
+DB_PATH = os.getenv("DB_PATH", "tasador.db")
+DEMO_MODE = os.getenv("DEMO_MODE", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+if DEMO_MODE:
+    os.environ.setdefault("DISABLE_SCRAPING", "1")
+
+
+def _sqlite_database_url(db_path: str) -> str:
+    if DEMO_MODE:
+        normalized_path = Path(db_path).as_posix()
+        return f"sqlite:///file:{normalized_path}?mode=ro&uri=true"
+
+    return f"sqlite:///{db_path}"
+
+
+DATABASE_URL = (
+    _sqlite_database_url(DB_PATH)
+    if DEMO_MODE
+    else os.environ.get("DATABASE_URL") or _sqlite_database_url(DB_PATH)
+)
 MIN_VALID_M2_CONSTRUIDOS = 10
 MAX_VALID_M2_CONSTRUIDOS = 1000
 MIN_VALID_UF_M2 = 5
@@ -99,6 +124,9 @@ def get_db():
 
 
 def init_db():
+    if DEMO_MODE:
+        return
+
     import models
 
     Base.metadata.create_all(bind=engine)

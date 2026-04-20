@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urlunparse
 
 from sqlalchemy import select
 
+from database import DEMO_MODE
 from data_cleaning import clean_listing
 from deduplication import generate_fingerprint, listing_matches_data, representative_score
 from models import Listing, PriceHistory, Property
@@ -17,6 +18,9 @@ MIN_SALE_PRICE_CLP = 10_000_000
 
 def process_listing_pipeline(db, listing_input, source):
     """Single controlled write path for the listings table."""
+    if DEMO_MODE:
+        raise RuntimeError("Ingesta de listings desactivada en DEMO_MODE; la DB demo es de solo lectura.")
+
     try:
         if source == "geocoding":
             listing = process_geocoding_update(db, listing_input)

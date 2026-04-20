@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 
 from sqlalchemy import select
 
-from database import SessionLocal, init_db
+from database import DEMO_MODE, SessionLocal, init_db
 from main import normalize_comuna
 from models import Listing
 
@@ -223,6 +223,28 @@ def group_property_duplicates(listings: Iterable[Listing]) -> list[list[Listing]
 def mark_duplicate_listings(db=None) -> dict:
     """Recalculate property-level duplicate flags without deleting any row."""
     owns_session = db is None
+
+    if DEMO_MODE:
+        if owns_session:
+            with SessionLocal() as read_db:
+                total = read_db.execute(select(Listing)).scalars().all()
+                active_eligible = [
+                    listing for listing in total if eligible_for_property_dedup(listing)
+                ]
+                duplicate_count = sum(1 for listing in total if listing.is_duplicate)
+                return {
+                    "groups": 0,
+                    "duplicates": duplicate_count,
+                    "eligible": len(active_eligible),
+                    "total": len(total),
+                }
+
+        return {
+            "groups": 0,
+            "duplicates": 0,
+            "eligible": 0,
+            "total": 0,
+        }
 
     if owns_session:
         init_db()
