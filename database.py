@@ -1,7 +1,6 @@
 import os
 import re
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -10,7 +9,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DB_PATH = os.getenv("DB_PATH", "tasador.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILENAME = os.getenv("DB_PATH", "tasador.db")
+DB_PATH = os.path.join(BASE_DIR, DB_FILENAME)
 DEMO_MODE = os.getenv("DEMO_MODE", "false").strip().lower() in {
     "1",
     "true",
