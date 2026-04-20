@@ -1,0 +1,169 @@
+{
+  "total_opportunities": 10,
+  "total_warnings": 0,
+  "total_critical": 10,
+  "problematic_opportunities": [
+    {
+      "listing_id": 2,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 4,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 7,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 8,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 9,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 10,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 11,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 12,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 13,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 14,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    }
+  ],
+  "audits": [
+    {
+      "listing_id": 2,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 4,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 7,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 8,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 9,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 10,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 11,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 12,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 13,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    },
+    {
+      "listing_id": 14,
+      "severity": "high",
+      "warnings": [],
+      "critical_issues": [
+        "Muy baja profundidad de mercado. No conviene confiar en el resultado sin revisión manual."
+      ]
+    }
+  ]
+}

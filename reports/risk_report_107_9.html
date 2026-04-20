@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santiago | Real Estate Risk Report</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  color-scheme:dark;
+  --base:#08090d;
+  --surface:#0e1018;
+  --card:#12141c;
+  --border:#1e2030;
+  --accent:#6366f1;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --text:#e2e4eb;
+  --muted:#8b90a0;
+}
+body{background:var(--base);color:var(--text);font-family:DM Sans,Inter,Segoe UI,Arial,sans-serif;line-height:1.5}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% -10%,rgba(99,102,241,.18),transparent 34%),linear-gradient(180deg,rgba(255,255,255,.02),transparent 180px);z-index:-1}
+.mono{font-family:JetBrains Mono,Consolas,monospace}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(8,9,13,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.topbar-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:14px}
+.badge{border:1px solid rgba(99,102,241,.35);background:rgba(99,102,241,.12);color:var(--accent);border-radius:8px;padding:6px 10px;font-weight:800;letter-spacing:.08em}
+.muted{color:var(--muted)}
+.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}
+main{max-width:1180px;margin:0 auto;padding:38px 24px 56px}
+.report-kicker{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.line{height:1px;flex:1;background:linear-gradient(90deg,rgba(99,102,241,.45),transparent)}
+.line.right{background:linear-gradient(270deg,rgba(99,102,241,.45),transparent)}
+.kicker-text{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.24em}
+h1{text-align:center;font-size:40px;letter-spacing:-.03em;color:white;margin-top:4px}
+.subtitle{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+.grid-main{display:grid;grid-template-columns:1fr 2fr;gap:28px;margin-top:34px;margin-bottom:34px}
+.card,.metric-card,.analysis-card{background:linear-gradient(180deg,#141722,#10121a);border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.gauge-card{padding:30px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden}
+.gauge-card::after{content:"";position:absolute;inset:auto 26px 0;height:1px;background:linear-gradient(90deg,transparent,#f59e0b,transparent);opacity:.55}
+.section-card{padding:24px;margin-bottom:28px}
+.card-hover{transition:all .22s ease}
+.card-hover:hover{background:#181a26;border-color:#2a2d42;transform:translateY(-1px)}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.score-pill{border-radius:999px;padding:7px 16px;margin-top:12px;font-weight:800;font-size:13px;letter-spacing:.02em}
+.score-pill.green{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35)}
+.score-pill.amber{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35)}
+.score-pill.red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.metric-card{padding:18px;position:relative;overflow:hidden;min-height:122px}
+.metric-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--muted);opacity:.75}
+.metric-card.green::before{background:var(--green)}.metric-card.amber::before{background:var(--amber)}.metric-card.red::before{background:var(--red)}
+.metric-label,.analysis-label{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted);margin-bottom:8px}
+.metric-value{font-family:JetBrains Mono,Consolas,monospace;color:white;font-size:25px;font-weight:850;word-break:break-word;line-height:1.08}
+.metric-detail,.analysis-detail{font-size:12px;color:var(--muted);margin-top:5px}
+.metric-detail.green{color:var(--green)}.metric-detail.amber{color:var(--amber)}.metric-detail.red{color:var(--red)}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.2em;color:var(--muted);margin:4px 0 16px;display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:999px;background:var(--accent)}
+.dot.green{background:var(--green)}.dot.amber{background:var(--amber)}.dot.red{background:var(--red)}
+.analysis-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.analysis-card{padding:16px;border-radius:14px;min-height:145px}
+.analysis-value{font-family:JetBrains Mono,Consolas,monospace;color:white;font-size:18px;font-weight:850;margin-bottom:5px;word-break:break-word;line-height:1.15}
+.pill{display:inline-block;margin-top:10px;border-radius:999px;padding:3px 8px;font-size:10px;font-family:JetBrains Mono,Consolas,monospace;font-weight:700}
+.pill.beat,.pill.green{background:rgba(34,197,94,.12);color:var(--green)}
+.pill.caution,.pill.amber{background:rgba(245,158,11,.12);color:var(--amber)}
+.pill.miss,.pill.red{background:rgba(239,68,68,.12);color:var(--red)}
+.breakdown{padding:24px;margin-bottom:28px}
+.score-row{margin-bottom:18px}
+.score-row-head{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px}
+.bar-track{height:10px;background:var(--surface);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;border-radius:999px}
+.bar-fill.green{background:linear-gradient(90deg,var(--green),rgba(34,197,94,.55))}
+.bar-fill.amber{background:linear-gradient(90deg,var(--amber),rgba(245,158,11,.55))}
+.bar-fill.red{background:linear-gradient(90deg,var(--red),rgba(239,68,68,.55))}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:28px}
+ul.clean{list-style:none;display:grid;gap:12px}
+ul.clean li{display:flex;gap:10px;font-size:14px;color:#c7cad3}
+.catalyst-marker{color:var(--green)}.risk-marker{color:var(--red)}
+.bottom{padding:30px;text-align:center;background:linear-gradient(180deg,#151823,var(--surface));border:1px solid var(--border);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.22)}
+.verdict{display:inline-block;margin-top:10px;border:1px solid #f59e0b;background:color-mix(in srgb,#f59e0b 14%, transparent);color:white;border-radius:999px;padding:9px 20px;font-weight:850;letter-spacing:.02em}
+.footer{border-top:1px solid var(--border);margin-top:34px;padding-top:18px;text-align:center;color:#5d6472;font-size:12px}
+@media(max-width:900px){.grid-main,.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.analysis-grid{grid-template-columns:repeat(2,1fr)}h1{font-size:32px}}
+@media(max-width:560px){.topbar-inner{align-items:flex-start;flex-direction:column}.kpi-grid,.analysis-grid{grid-template-columns:1fr}main{padding:28px 16px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="badge mono">RE</div>
+      <div>
+        <div>Departamento</div>
+        <div class="muted mono" style="font-size:12px">Santiago · 58 m2 · N/AD/N/AB</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="mono" style="font-size:22px;font-weight:800;color:white">≈ 1.990 UF</div>
+      <div class="muted mono" style="font-size:12px">$79.574.826</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="report-kicker"><div class="line"></div><div class="kicker-text mono">Real Estate Risk Report</div><div class="line right"></div></div>
+    <h1>Santiago <span style="color:var(--accent)">Departamento</span></h1>
+    <div class="subtitle mono">Generated 2026-04-20 · Listing 107_9 · Standalone HTML report</div>
+  </section>
+
+  <section class="grid-main">
+    <div class="card gauge-card">
+      <div class="eyebrow">Investment Score</div>
+      <svg viewBox="0 0 200 120" width="230" aria-label="Investment score gauge">
+        <defs>
+          <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#24283a" stroke-width="14" stroke-linecap="round"/>
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="113.0" filter="url(#softGlow)"/>
+        <g transform="rotate(9.0 100 100)">
+          <line x1="100" y1="100" x2="100" y2="25" stroke="#f8fafc" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+        <circle cx="100" cy="100" r="6" fill="#f59e0b" stroke="#f8fafc" stroke-width="2"/>
+        <text x="100" y="86" text-anchor="middle" fill="white" font-family="JetBrains Mono,Consolas,monospace" font-size="30" font-weight="800">55</text>
+        <text x="100" y="104" text-anchor="middle" fill="#8b90a0" font-family="JetBrains Mono,Consolas,monospace" font-size="9">/100</text>
+        <text x="20" y="116" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono,Consolas,monospace" font-size="8" font-weight="700">HIGH RISK</text>
+        <text x="100" y="116" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono,Consolas,monospace" font-size="8" font-weight="700">REVIEW</text>
+        <text x="180" y="116" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono,Consolas,monospace" font-size="8" font-weight="700">STRONG</text>
+      </svg>
+      <div class="score-pill amber">Needs Review</div>
+      <p class="muted" style="font-size:12px;margin-top:12px">Signal flag based on the radar score.</p>
+    </div>
+
+    <div class="kpi-grid">
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Descuento</div>
+          <div class="metric-value">27.2%</div>
+          <div class="metric-detail green">Brecha contra valor estimado</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Comparables</div>
+          <div class="metric-value">9</div>
+          <div class="metric-detail green">Muestras usadas por el radar</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Confianza</div>
+          <div class="metric-value">81%</div>
+          <div class="metric-detail green">Confianza del modelo</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Precio/m2 vs mercado</div>
+          <div class="metric-value">-26.7%</div>
+          <div class="metric-detail green">Activo contra promedio</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Precio/m2 activo</div>
+          <div class="metric-value">$1.371.980</div>
+          <div class="metric-detail green">Precio unitario</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Precio/m2 mercado</div>
+          <div class="metric-value">$1.871.601</div>
+          <div class="metric-detail green">Promedio comparables</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Superficie</div>
+          <div class="metric-value">58 m2</div>
+          <div class="metric-detail green">Base física</div>
+        </div>
+        
+      
+        <div class="metric-card card-hover green">
+          <div class="metric-label">Dorm/Baños</div>
+          <div class="metric-value">N/AD / N/AB</div>
+          <div class="metric-detail green">Programa principal</div>
+        </div>
+        
+    </div>
+  </section>
+
+  <section class="section-card card">
+    <h2 class="section-title"><span class="dot"></span>Valuation Analysis</h2>
+    <div class="analysis-grid">
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Precio publicado</div>
+          <div class="analysis-value">$79.574.826</div>
+          <div class="analysis-detail">Precio observado en la publicación.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Valor estimado</div>
+          <div class="analysis-value">$109.364.850</div>
+          <div class="analysis-detail">Referencia de valor del radar.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Descuento</div>
+          <div class="analysis-value">27.2%</div>
+          <div class="analysis-detail">Brecha contra valor estimado.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Precio/m2 activo</div>
+          <div class="analysis-value">$1.371.980</div>
+          <div class="analysis-detail">Precio unitario calculado.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Precio/m2 mercado</div>
+          <div class="analysis-value">$1.871.601</div>
+          <div class="analysis-detail">Promedio de comparables ajustado por superficie.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Vs mercado</div>
+          <div class="analysis-value">-26.7%</div>
+          <div class="analysis-detail">Diferencia del activo contra mercado.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        </div>
+  </section>
+
+  <section class="section-card card">
+    <h2 class="section-title"><span class="dot green"></span>Market Support</h2>
+    <div class="analysis-grid">
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Comparables</div>
+          <div class="analysis-value">9</div>
+          <div class="analysis-detail">Profundidad de mercado disponible.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Confianza</div>
+          <div class="analysis-value">81%</div>
+          <div class="analysis-detail">Confianza reportada por el modelo.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Comuna</div>
+          <div class="analysis-value">Santiago</div>
+          <div class="analysis-detail">Mercado local objetivo.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Tipo</div>
+          <div class="analysis-value">Departamento</div>
+          <div class="analysis-detail">Segmento de propiedad.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Superficie</div>
+          <div class="analysis-value">58 m2</div>
+          <div class="analysis-detail">Base para comparabilidad.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Dorm/Baños</div>
+          <div class="analysis-value">N/AD / N/AB</div>
+          <div class="analysis-detail">Atributos principales.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        </div>
+  </section>
+
+  <section class="section-card card">
+    <h2 class="section-title"><span class="dot amber"></span>Risk Analysis</h2>
+    <div class="analysis-grid">
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Legal risk</div>
+          <div class="analysis-value">Medio</div>
+          <div class="analysis-detail">Perfil legal disponible.</div>
+          <div class="pill beat">FAVORABLE</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Data quality</div>
+          <div class="analysis-value">Low Reliability</div>
+          <div class="analysis-detail">Confiabilidad según datos faltantes.</div>
+          <div class="pill miss">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Score riesgo</div>
+          <div class="analysis-value">25/100</div>
+          <div class="analysis-detail">Subscore de riesgo.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Datos faltantes</div>
+          <div class="analysis-value">83%</div>
+          <div class="analysis-detail">Completitud del input.</div>
+          <div class="pill miss">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Flags</div>
+          <div class="analysis-value">2</div>
+          <div class="analysis-detail">Riesgos levantados por el radar.</div>
+          <div class="pill caution">CAUTION</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Signal flag</div>
+          <div class="analysis-value">Needs Review</div>
+          <div class="analysis-detail">Lectura institucional del score.</div>
+          <div class="pill amber">CAUTION</div>
+        </div>
+        </div>
+  </section>
+
+  <section class="section-card card">
+    <h2 class="section-title"><span class="dot red"></span>Negotiation Strategy</h2>
+    <div class="analysis-grid">
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Seller Profile</div>
+          <div class="analysis-value">Rigid</div>
+          <div class="analysis-detail">Lectura de flexibilidad observada.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Negotiation Score</div>
+          <div class="analysis-value">27/100</div>
+          <div class="analysis-detail">Score basado en tiempo, cambios y caídas.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Strategy</div>
+          <div class="analysis-value">Wait</div>
+          <div class="analysis-detail">Postura sugerida de negociación.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Negotiation Confidence</div>
+          <div class="analysis-value">Low</div>
+          <div class="analysis-detail">Confiabilidad según datos y soporte.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Suggested Tactic</div>
+          <div class="analysis-value">Esperar mayor evidencia de presión comercial o un nuevo ajuste de precio.</div>
+          <div class="analysis-detail">Acción recomendada para negociar.</div>
+          <div class="pill red">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Days on Market</div>
+          <div class="analysis-value">8</div>
+          <div class="analysis-detail">Tiempo publicado.</div>
+          <div class="pill miss">WEAK</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Price Changes</div>
+          <div class="analysis-value">1</div>
+          <div class="analysis-detail">Cambios observados de precio.</div>
+          <div class="pill caution">CAUTION</div>
+        </div>
+        
+        <div class="analysis-card card-hover">
+          <div class="analysis-label">Drop from Peak</div>
+          <div class="analysis-value">N/A</div>
+          <div class="analysis-detail">Caída acumulada desde máximo.</div>
+          <div class="pill miss">WEAK</div>
+        </div>
+        </div>
+    <div class="two-col" style="margin:18px 0 0">
+      <div class="card section-card" style="margin-bottom:0;border-color:rgba(99,102,241,.24)">
+        <h2 class="section-title"><span class="dot"></span>Signals</h2>
+        <ul class="clean"><li><span class="catalyst-marker">▸</span><span>8 días en mercado</span></li><li><span class="catalyst-marker">▸</span><span>1 cambios de precio</span></li></ul>
+      </div>
+      <div class="card section-card" style="margin-bottom:0;border-color:rgba(99,102,241,.24)">
+        <h2 class="section-title"><span class="dot red"></span>Explanation</h2>
+        <p class="muted" style="font-size:14px;line-height:1.6">No hay señales claras de flexibilidad del vendedor. Esta lectura tiene baja confiabilidad por calidad de datos o soporte insuficiente.</p>
+        <p class="red" style="font-size:13px;line-height:1.6;margin-top:12px;font-weight:700">⚠️ Baja confiabilidad de la estrategia por datos incompletos.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card breakdown">
+    <h2 class="section-title"><span class="dot"></span>Score Breakdown</h2>
+    
+        <div class="score-row">
+          <div class="score-row-head">
+            <span>Valuation <span class="muted mono">(35%)</span></span>
+            <span class="mono green">91 / 100</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill green" style="width:91%"></div>
+          </div>
+        </div>
+        
+    
+        <div class="score-row">
+          <div class="score-row-head">
+            <span>Market Support <span class="muted mono">(35%)</span></span>
+            <span class="mono green">86 / 100</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill green" style="width:86%"></div>
+          </div>
+        </div>
+        
+    
+        <div class="score-row">
+          <div class="score-row-head">
+            <span>Risk <span class="muted mono">(30%)</span></span>
+            <span class="mono red">25 / 100</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill red" style="width:25%"></div>
+          </div>
+        </div>
+        
+    <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;display:flex;justify-content:space-between;gap:16px;align-items:center">
+      <span class="muted">Weighted Composite</span>
+      <span class="mono" style="font-size:20px;font-weight:800;color:var(--accent)">Score: 55 / 100</span>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="card section-card" style="border-color:rgba(34,197,94,.24)">
+      <h2 class="section-title" style="color:var(--green)"><span class="dot green"></span>Catalysts</h2>
+      <ul class="clean"><li><span class="catalyst-marker">▸</span><span>Base sólida de comparables</span></li><li><span class="catalyst-marker">▸</span><span>Alta confianza del modelo</span></li><li><span class="catalyst-marker">▸</span><span>Descuento significativo</span></li></ul>
+    </div>
+    <div class="card section-card" style="border-color:rgba(239,68,68,.24)">
+      <h2 class="section-title" style="color:var(--red)"><span class="dot red"></span>Risks</h2>
+      <ul class="clean"><li><span class="risk-marker">▸</span><span>Datos incompletos</span></li><li><span class="risk-marker">▸</span><span>Datos incompletos sobre 30%.</span></li></ul>
+    </div>
+  </section>
+
+  <section class="bottom">
+    <div class="eyebrow">The Bottom Line</div>
+    <div class="verdict">Needs Review</div>
+    <p class="muted" style="max-width:760px;margin:16px auto 0;font-size:14px">Activo subvalorado con buen respaldo de mercado.</p>
+    <p class="muted" style="max-width:760px;margin:12px auto 0;font-size:12px;font-style:italic">Reporte informativo generado a partir de radar inmobiliario, AVM y señales de riesgo. No constituye asesoría financiera, legal ni recomendación de inversión.</p>
+  </section>
+
+  <footer class="footer mono">
+    Real Estate Risk Report · Generated 2026-04-20 · Listing 107_9
+  </footer>
+</main>
+</body>
+</html>
