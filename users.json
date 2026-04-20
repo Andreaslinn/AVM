@@ -1,14 +1,8 @@
 {
-  "Andy": "1234",
-  "admin": "demo123",
-  "tester1": "1234",
-  "tester2": "1234",
-  "tester3": "1234",
-  "tester4": "1234",
-  "tester5": "1234",
-  "tester6": "1234",
-  "tester7": "1234",
-  "tester8": "1234",
-  "tester9": "1234",
-  "tester10": "1234"
+  "Andy": {
+    "password": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
+  },
+  "admin": {
+    "password": "d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791"
+  }
 }

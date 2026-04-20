@@ -1,4 +1,5 @@
 ﻿from datetime import date, datetime
+import hashlib
 from html import escape
 import json
 import os
@@ -29,7 +30,7 @@ from database import DB_PATH, SessionLocal, engine, has_required_tables
 from data_sufficiency import LOW_DATA_WARNING, MIN_ACTIVE_LISTINGS
 from services.listing_service import initialize_app_data, save_listing as save_property_listing
 from services import radar_service, risk_analysis_service, valuation_service
-from tracking import log_event
+from tracking import get_tracking, log_event, remove_tracking, save_tracking
 
 st.set_page_config(page_title="Tasador Inmobiliario", layout="wide")
 
@@ -64,29 +65,159 @@ def render_nav():
 
     st.markdown("---")
 
-def check_login():
-    USERS_FILE = Path("users.json")
+USERS_FILE = Path(__file__).resolve().parent / "users.json"
+BOOTSTRAP_USER = "tester1"
+BOOTSTRAP_PASSWORD = "1234"
 
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def load_users():
     if not USERS_FILE.exists():
-        st.error("users.json no encontrado")
-        return False
+        USERS_FILE.write_text(
+            json.dumps({}, indent=2),
+            encoding="utf-8",
+        )
 
     users = json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    normalized_users = {}
+    needs_save = False
 
-    st.title("Acceso restringido")
+    for username, user_data in users.items():
+        if username == BOOTSTRAP_USER:
+            needs_save = True
+            continue
+
+        if isinstance(user_data, dict) and "password" in user_data:
+            normalized_users[username] = user_data
+        else:
+            normalized_users[username] = {"password": hash_password(str(user_data))}
+            needs_save = True
+
+    if needs_save:
+        save_users(normalized_users)
+
+    return normalized_users
+
+
+def save_users(users):
+    USERS_FILE.write_text(
+        json.dumps(users, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def create_user(username, password):
+    users = load_users()
+    username = username.strip()
+
+    if not username or not password:
+        return False, "Ingresa usuario y contraseña."
+
+    if username == BOOTSTRAP_USER:
+        return False, "Elige un usuario distinto a tester1."
+
+    if username in users:
+        return False, "Ese usuario ya existe."
+
+    users[username] = {"password": hash_password(password)}
+    save_users(users)
+    return True, None
+
+
+def login(username, password):
+    users = load_users()
+    user_data = users.get(username.strip())
+
+    if not user_data:
+        return False
+
+    return user_data.get("password") == hash_password(password)
+
+
+def finish_login(username):
+    st.session_state["username"] = username
+    st.session_state["user"] = username
+    st.session_state["authenticated"] = True
+    st.session_state["is_admin"] = username == "Andy"
+
+
+def render_beta_gate():
+    st.title("Acceso beta")
+    username = st.text_input("Usuario beta")
+    password = st.text_input("Clave beta", type="password")
+
+    if st.button("Entrar a beta"):
+        if username == BOOTSTRAP_USER and password == BOOTSTRAP_PASSWORD:
+            st.session_state["beta_unlocked"] = True
+            st.rerun()
+
+        st.error("Credenciales beta incorrectas")
+
+    return False
+
+
+def render_create_user():
+    st.title("Crea tu cuenta")
+    st.info("Para continuar, crea un usuario propio para esta beta.")
+
+    new_username = st.text_input("Nuevo usuario", key="new_beta_username")
+    new_password = st.text_input(
+        "Nueva contraseña",
+        type="password",
+        key="new_beta_password",
+    )
+    confirm_password = st.text_input(
+        "Confirmar contraseña",
+        type="password",
+        key="confirm_beta_password",
+    )
+
+    if st.button("Crear cuenta"):
+        if new_password != confirm_password:
+            st.error("Las contraseñas no coinciden.")
+            return False
+
+        created, error = create_user(new_username, new_password)
+        if not created:
+            st.error(error)
+            return False
+
+        finish_login(new_username.strip())
+        return True
+
+    return False
+
+
+def render_existing_user_login():
+    st.title("Ingresa con tu cuenta")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
 
     if st.button("Entrar"):
-        if username in users and users[username] == password:
-            st.session_state["user"] = username
-            if username == "Andy":
-                st.session_state["is_admin"] = True
-            else:
-                st.session_state["is_admin"] = False
+        if login(username, password):
+            finish_login(username.strip())
             return True
 
         st.error("Credenciales incorrectas")
+
+    return False
+
+
+def check_login():
+    if not st.session_state.get("beta_unlocked"):
+        return render_beta_gate()
+
+    if not st.session_state.get("username"):
+        auth_tab, create_tab = st.tabs(["Ya tengo cuenta", "Crear cuenta"])
+        with auth_tab:
+            if render_existing_user_login():
+                return True
+        with create_tab:
+            if render_create_user():
+                return True
 
     return False
 
@@ -96,7 +227,7 @@ def log_usage(user):
 
 
 def track(event, metadata=None):
-    user = st.session_state.get("user", "anonymous")
+    user = st.session_state.get("username", "anonymous")
     log_event(
         user,
         event,
@@ -105,17 +236,17 @@ def track(event, metadata=None):
     )
 
 
-if "user" not in st.session_state:
+if not st.session_state.get("authenticated"):
     if not check_login():
         st.stop()
     else:
-        log_usage(st.session_state["user"])
+        log_usage(st.session_state["username"])
         st.session_state["usage_logged"] = True
         st.rerun()
 
 
 if "usage_logged" not in st.session_state:
-    log_usage(st.session_state["user"])
+    log_usage(st.session_state["username"])
     st.session_state["usage_logged"] = True
 
 
@@ -189,6 +320,10 @@ def get_listing_source_listing_id(listing):
     if hasattr(listing, "get"):
         return listing.get("source_listing_id")
     return getattr(listing, "source_listing_id", None)
+
+
+def current_username():
+    return st.session_state.get("username") or st.session_state.get("user") or "anonymous"
 
 
 def init_saved_listings_table():
@@ -271,9 +406,6 @@ def init_saved_listings_table():
 
 
 def save_listing(opportunity, precio=None, score=None):
-    if DEMO_MODE:
-        return False
-
     if hasattr(opportunity, "get"):
         opportunity = opportunity or {}
         listing = opportunity.get("listing")
@@ -290,6 +422,9 @@ def save_listing(opportunity, precio=None, score=None):
 
     if not listing_id:
         return False
+
+    if DEMO_MODE:
+        return save_tracking(current_username(), listing_id)
 
     init_saved_listings_table()
     with engine.begin() as connection:
@@ -316,6 +451,18 @@ def save_listing(opportunity, precio=None, score=None):
 
 
 def get_saved_listings():
+    if DEMO_MODE:
+        return [
+            {
+                "id": index,
+                "listing_id": listing_id,
+                "precio_guardado": None,
+                "score_guardado": None,
+                "saved_at": None,
+            }
+            for index, listing_id in enumerate(get_tracking(current_username()), start=1)
+        ]
+
     if not DEMO_MODE:
         init_saved_listings_table()
 
@@ -348,7 +495,7 @@ def get_saved_listings():
 
 def remove_saved_listing(listing_id):
     if DEMO_MODE:
-        return False
+        return remove_tracking(current_username(), listing_id)
 
     if not listing_id:
         return False
