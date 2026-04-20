@@ -57,7 +57,8 @@ DORMITORIOS_FALLBACK_SCORE_PENALTY = 0.90
 def run_radar(limit: int = DEFAULT_TOP_LIMIT) -> list[dict]:
     """Open a DB session and return the top investment opportunities."""
     init_db()
-    mark_duplicate_listings()
+    if not DEMO_MODE:
+        mark_duplicate_listings()
 
     with SessionLocal() as db:
         return detectar_oportunidades(db, limit=limit)
@@ -71,7 +72,8 @@ def get_top_opportunities(limit: int = DEFAULT_TOP_LIMIT) -> list[dict]:
 def get_radar_ready_count() -> int:
     """Count active, non-duplicate listings that can enter radar analysis."""
     init_db()
-    mark_duplicate_listings()
+    if not DEMO_MODE:
+        mark_duplicate_listings()
 
     with SessionLocal() as db:
         return len(obtener_listings_candidatos(db))
@@ -83,7 +85,8 @@ def get_best_opportunity(budget, limit=3) -> list[dict]:
         raise ValueError("budget must be a positive number")
 
     init_db()
-    mark_duplicate_listings()
+    if not DEMO_MODE:
+        mark_duplicate_listings()
     opportunities = []
 
     with SessionLocal() as db:
