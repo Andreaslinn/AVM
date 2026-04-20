@@ -22,10 +22,6 @@ if DEMO_MODE:
 
 
 def _sqlite_database_url(db_path: str) -> str:
-    if DEMO_MODE:
-        normalized_path = Path(db_path).as_posix()
-        return f"sqlite:///file:{normalized_path}?mode=ro&uri=true"
-
     return f"sqlite:///{db_path}"
 
 
